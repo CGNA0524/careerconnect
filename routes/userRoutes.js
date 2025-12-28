@@ -14,4 +14,29 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// Update profile
+router.put("/me", authMiddleware, async (req, res) => {
+  try {
+    const { headline, location, skills } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        headline,
+        location,
+        skills,
+      },
+      { new: true }
+    ).select("-password");
+
+    res.json({
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
 module.exports = router;

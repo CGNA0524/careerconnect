@@ -16,7 +16,6 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      minlength: 6,
     },
     headline: {
       type: String,
@@ -26,15 +25,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    skills: [
-      {
-        type: String,
-      },
-    ],
+    skills: {
+      type: [String],
+      default: [],
+    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("User", userSchema);
