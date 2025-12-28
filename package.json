@@ -3,18 +3,18 @@
   "version": "1.0.0",
   "description": "CareerConnect is a full-stack professional networking web application that enables users to build profiles, share posts, and interact through likes and comments. It also features AI-powered interview practice, mock tests, and personalized user statistics to support job preparation and skill tracking.",
   "main": "server.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CGNA0524/careerconnect.git"
+    "url": "https://github.com/CGNA0524/careerconnect.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Chirag Nagra",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/CGNA0524/careerconnect/issues"
   },
