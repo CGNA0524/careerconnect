@@ -12,10 +12,14 @@ connectDB();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+
 
 app.get("/", (req, res) => {
   res.send("CareerConnect backend is running 🚀");
 });
+
+app.use("/api/auth", require("./routes/authRoutes"));
 
 const PORT = process.env.PORT || 3000;
 
