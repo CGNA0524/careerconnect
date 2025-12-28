@@ -1,0 +1,30 @@
+{
+  "name": "careerconnect",
+  "version": "1.0.0",
+  "description": "CareerConnect is a full-stack professional networking web application that enables users to build profiles, share posts, and interact through likes and comments. It also features AI-powered interview practice, mock tests, and personalized user statistics to support job preparation and skill tracking.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CGNA0524/careerconnect.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/CGNA0524/careerconnect/issues"
+  },
+  "homepage": "https://github.com/CGNA0524/careerconnect#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mongoose": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
