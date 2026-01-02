@@ -1,9 +1,62 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
+
 const User = require("../models/User");
+const Post = require("../models/Post");
+const Interview = require("../models/Interview");
 const Notification = require("../models/Notification");
 
 const router = express.Router();
+
+/**
+ * ===============================
+ * USER STATISTICS (DASHBOARD)
+ * ===============================
+ */
+router.get("/stats", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const posts = await Post.find({ author: userId });
+    const interviews = await Interview.find({ user: userId });
+
+    const totalLikes = posts.reduce(
+      (sum, post) => sum + post.likes.length,
+      0
+    );
+
+    const totalComments = posts.reduce(
+      (sum, post) => sum + post.comments.length,
+      0
+    );
+
+    const averageScore =
+      interviews.length === 0
+        ? 0
+        : Math.round(
+            interviews.reduce((s, i) => s + i.totalScore, 0) /
+              interviews.length
+          );
+
+    res.json({
+      posts: posts.length,
+      likes: totalLikes,
+      comments: totalComments,
+      followers: user.followers.length,
+      following: user.following.length,
+      interviews: interviews.length,
+      averageScore,
+    });
+  } catch (error) {
+    console.error("STATS ERROR:", error);
+    res.status(500).json({ message: "Failed to load stats" });
+  }
+});
 
 /**
  * ===============================
@@ -15,7 +68,6 @@ router.get("/me", authMiddleware, async (req, res) => {
     const user = await User.findById(req.user.id).select("-password");
     res.json(user);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -40,14 +92,13 @@ router.put("/me", authMiddleware, async (req, res) => {
       user,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Server error" });
   }
 });
 
 /**
  * ===============================
- * GET ALL USERS (for follow testing)
+ * GET ALL USERS (FOR FOLLOW TESTING)
  * ===============================
  */
 router.get("/", authMiddleware, async (req, res) => {
@@ -57,7 +108,6 @@ router.get("/", authMiddleware, async (req, res) => {
 
     res.json(users);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ message: "Failed to fetch users" });
   }
 });
@@ -100,7 +150,7 @@ router.post("/:id/follow", authMiddleware, async (req, res) => {
     await currentUser.save();
     await targetUser.save();
 
-    // 🔔 Create notification
+    // 🔔 Notification
     await Notification.create({
       user: targetUser._id,
       type: "FOLLOW",
