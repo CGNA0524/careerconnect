@@ -7,6 +7,7 @@ const userRoutes = require("./routes/userRoutes");
 const postRoutes = require("./routes/postRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const statsRoutes = require("./routes/statsRoutes");
+const interviewRoutes = require("./routes/interviewRoutes");
 
 
 dotenv.config();
@@ -26,6 +27,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/stats", statsRoutes);
+app.use("/api/interviews", interviewRoutes);
 
 
 // Root route
