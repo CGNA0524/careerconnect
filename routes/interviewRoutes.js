@@ -4,6 +4,19 @@ const Interview = require("../models/Interview");
 
 const router = express.Router();
 
+// Get all interviews of logged-in user
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const interviews = await Interview.find({ user: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.json(interviews);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch interviews" });
+  }
+});
+
+
 /**
  * START AI INTERVIEW
  */
