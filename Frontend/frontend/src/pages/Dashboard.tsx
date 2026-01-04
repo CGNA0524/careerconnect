@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/api";
 import DashboardCards from "../components/DashboardCards";
 import PostCard from "../components/PostCard";
+import CreatePost from "../components/CreatePost";
 
 export default function Dashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -12,16 +13,17 @@ export default function Dashboard() {
     try {
       const res = await api.get("/users/stats");
       setStats(res.data);
-      setError("");
-    } catch (err) {
+    } catch {
       setError("Failed to load stats");
     }
   };
 
   const fetchFeed = async () => {
     try {
-      const res = await api.get("/posts/feed");
+      // ✅ FIX: correct backend route
+      const res = await api.get("/posts");
       setPosts(res.data);
+      setError("");
     } catch (err) {
       setError("Failed to load feed");
     }
@@ -42,7 +44,11 @@ export default function Dashboard() {
 
       <hr style={{ margin: "30px 0" }} />
 
+      <CreatePost onPostCreated={fetchFeed} />
+
       <h3>Global Feed</h3>
+
+      {posts.length === 0 && <p>No posts yet</p>}
 
       {posts.map((post) => (
         <PostCard key={post._id} post={post} />
