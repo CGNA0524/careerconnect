@@ -1,6 +1,16 @@
 import { useState } from "react";
 import api from "../api/api";
 
+type Comment = {
+  _id: string;
+  text: string;
+  author?: {
+    _id: string;
+    username: string;
+  } | string;
+  createdAt: string;
+};
+
 type Post = {
   _id: string;
   content: string;
@@ -9,14 +19,17 @@ type Post = {
     username: string;
   } | string;
   likes?: string[];
+  comments?: Comment[];
   createdAt: string;
 };
 
 export default function PostCard({ post }: { post: Post }) {
-  const initialLikes = post.likes || [];
+  const [likes, setLikes] = useState<string[]>(post.likes || []);
+  const [comments, setComments] = useState<Comment[]>(post.comments || []);
+  const [commentText, setCommentText] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const [likes, setLikes] = useState<string[]>(initialLikes);
-  const userId = localStorage.getItem("userId"); // optional (safe fallback)
+  const userId = localStorage.getItem("userId");
 
   const authorName =
     typeof post.author === "object" && post.author !== null
@@ -28,17 +41,33 @@ export default function PostCard({ post }: { post: Post }) {
   const handleLike = async () => {
     try {
       const res = await api.post(`/posts/${post._id}/like`);
-      // backend toggles like; refetch likes from response if available
       if (res.data?.likes) {
         setLikes(res.data.likes);
-      } else {
-        // fallback: optimistic toggle
-        setLikes((prev) =>
-          isLiked ? prev.filter((id) => id !== userId) : [...prev, userId!]
-        );
       }
     } catch {
       alert("Failed to like post");
+    }
+  };
+
+  const handleComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    try {
+      setLoading(true);
+      const res = await api.post(`/posts/${post._id}/comment`, {
+        text: commentText,
+      });
+
+      if (res.data?.comments) {
+        setComments(res.data.comments);
+      }
+
+      setCommentText("");
+    } catch {
+      alert("Failed to add comment");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,7 +77,7 @@ export default function PostCard({ post }: { post: Post }) {
         border: "1px solid #ddd",
         borderRadius: "8px",
         padding: "15px",
-        marginBottom: "15px",
+        marginBottom: "20px",
       }}
     >
       <strong>{authorName}</strong>
@@ -62,7 +91,42 @@ export default function PostCard({ post }: { post: Post }) {
         <span>{likes.length} likes</span>
       </div>
 
-      <small style={{ display: "block", marginTop: "6px" }}>
+      {/* Comments */}
+      <div style={{ marginTop: "15px" }}>
+        <strong>Comments</strong>
+
+        {comments.length === 0 && (
+          <p style={{ fontSize: "14px" }}>No comments yet</p>
+        )}
+
+        {comments.map((c) => {
+          const commentAuthor =
+            typeof c.author === "object" && c.author !== null
+              ? c.author.username
+              : "Unknown user";
+
+          return (
+            <div key={c._id} style={{ marginTop: "8px", fontSize: "14px" }}>
+              <strong>{commentAuthor}:</strong> {c.text}
+            </div>
+          );
+        })}
+
+        <form onSubmit={handleComment} style={{ marginTop: "10px" }}>
+          <input
+            type="text"
+            placeholder="Write a comment..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            style={{ width: "100%", padding: "6px" }}
+          />
+          <button type="submit" disabled={loading} style={{ marginTop: "6px" }}>
+            {loading ? "Posting..." : "Comment"}
+          </button>
+        </form>
+      </div>
+
+      <small style={{ display: "block", marginTop: "10px" }}>
         {new Date(post.createdAt).toLocaleString()}
       </small>
     </div>
