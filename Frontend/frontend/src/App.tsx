@@ -1,64 +1,37 @@
 import { useEffect, useState } from "react";
 import api from "./api/api";
+import DashboardCards from "./components/DashboardCards";
 
 function App() {
-  const [loggedIn, setLoggedIn] = useState(false);
   const [stats, setStats] = useState<any>(null);
-
-  const login = async () => {
-    try {
-      const res = await api.post("/auth/login", {
-        email: "chiragnagra256@gmail.com",
-        password: "Chirag@05245",
-      });
-
-      localStorage.setItem("token", res.data.token);
-      setLoggedIn(true);
-
-      console.log("✅ Login successful");
-    } catch (err) {
-      console.error("❌ Login failed", err);
-    }
-  };
+  const [error, setError] = useState("");
 
   const fetchStats = async () => {
     try {
       const res = await api.get("/users/stats");
       setStats(res.data);
-      console.log("✅ Stats loaded", res.data);
     } catch (err: any) {
-      console.error(
-        "❌ Stats error",
-        err.response?.data || err.message
-      );
+      if (err.response?.status === 401) {
+        setError("Unauthorized. Please login again.");
+      } else {
+        setError("Failed to load stats.");
+      }
     }
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setLoggedIn(true);
-      fetchStats();
-    }
+    fetchStats();
   }, []);
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>CareerConnect Frontend</h1>
+    <div style={{ padding: "20px", fontFamily: "serif" }}>
+      <h1>CareerConnect Dashboard</h1>
 
-      {!loggedIn ? (
-        <button onClick={login}>Login</button>
-      ) : (
-        <>
-          <button onClick={fetchStats}>Fetch Stats</button>
+      <button onClick={fetchStats}>Refresh Stats</button>
 
-          {stats && (
-            <pre style={{ marginTop: "1rem" }}>
-              {JSON.stringify(stats, null, 2)}
-            </pre>
-          )}
-        </>
-      )}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {stats && <DashboardCards stats={stats} />}
     </div>
   );
 }
