@@ -1,11 +1,11 @@
-// Frontend/src/pages/Dashboard.tsx
-
 import { useEffect, useState } from "react";
 import api from "../api/api";
 import DashboardCards from "../components/DashboardCards";
+import PostCard from "../components/PostCard";
 
 export default function Dashboard() {
   const [stats, setStats] = useState<any>(null);
+  const [posts, setPosts] = useState<any[]>([]);
   const [error, setError] = useState("");
 
   const fetchStats = async () => {
@@ -13,28 +13,40 @@ export default function Dashboard() {
       const res = await api.get("/users/stats");
       setStats(res.data);
       setError("");
-    } catch (err: any) {
-      if (err.response?.status === 401) {
-        setError("Unauthorized. Please login again.");
-      } else {
-        setError("Failed to load stats.");
-      }
+    } catch (err) {
+      setError("Failed to load stats");
+    }
+  };
+
+  const fetchFeed = async () => {
+    try {
+      const res = await api.get("/posts/feed");
+      setPosts(res.data);
+    } catch (err) {
+      setError("Failed to load feed");
     }
   };
 
   useEffect(() => {
     fetchStats();
+    fetchFeed();
   }, []);
 
   return (
     <div style={{ padding: "20px" }}>
       <h2>Dashboard</h2>
 
-      <button onClick={fetchStats}>Refresh Stats</button>
-
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       {stats && <DashboardCards stats={stats} />}
+
+      <hr style={{ margin: "30px 0" }} />
+
+      <h3>Global Feed</h3>
+
+      {posts.map((post) => (
+        <PostCard key={post._id} post={post} />
+      ))}
     </div>
   );
 }
