@@ -1,23 +1,19 @@
 import { Navigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 
-export default function ProtectedRoute({
-  children,
-}: {
-  children: JSX.Element;
-}) {
+export default function ProtectedRoute(props: any) {
   const { user, loading } = useUser();
 
-  // ✅ WAIT until auth check finishes
+  // Wait for auth check
   if (loading) {
     return <p>Loading...</p>;
   }
 
-  // ❌ Not logged in
+  // Not logged in
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // ✅ Logged in
-  return children;
+  // Logged in
+  return props.children;
 }
