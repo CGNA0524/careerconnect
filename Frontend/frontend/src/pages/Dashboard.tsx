@@ -19,15 +19,15 @@ export default function Dashboard() {
   };
 
   const fetchFeed = async () => {
-    try {
-      // ✅ FIX: correct backend route
-      const res = await api.get("/posts");
-      setPosts(res.data);
-      setError("");
-    } catch (err) {
-      setError("Failed to load feed");
-    }
-  };
+  try {
+    const res = await api.get("/posts");
+    setPosts(res.data);
+    setError("");
+  } catch {
+    setError("Failed to load feed");
+  }
+};
+
 
   useEffect(() => {
     fetchStats();

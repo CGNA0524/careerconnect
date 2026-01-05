@@ -1,134 +1,52 @@
 import { useState } from "react";
 import api from "../api/api";
+import { useUser } from "../context/UserContext";
 
-type Comment = {
-  _id: string;
-  text: string;
-  author?: {
-    _id: string;
-    username: string;
-  } | string;
-  createdAt: string;
-};
+export default function PostCard({ post }: any) {
+  const { user } = useUser();
+  const [likes, setLikes] = useState(post.likes || []);
+  const [comments, setComments] = useState(post.comments || []);
+  const [text, setText] = useState("");
 
-type Post = {
-  _id: string;
-  content: string;
-  author?: {
-    _id: string;
-    username: string;
-  } | string;
-  likes?: string[];
-  comments?: Comment[];
-  createdAt: string;
-};
+  const isLiked = user && likes.includes(user._id);
 
-export default function PostCard({ post }: { post: Post }) {
-  const [likes, setLikes] = useState<string[]>(post.likes || []);
-  const [comments, setComments] = useState<Comment[]>(post.comments || []);
-  const [commentText, setCommentText] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const userId = localStorage.getItem("userId");
-
-  const authorName =
-    typeof post.author === "object" && post.author !== null
-      ? post.author.username
-      : "Unknown user";
-
-  const isLiked = userId ? likes.includes(userId) : false;
-
-  const handleLike = async () => {
-    try {
-      const res = await api.post(`/posts/${post._id}/like`);
-      if (res.data?.likes) {
-        setLikes(res.data.likes);
-      }
-    } catch {
-      alert("Failed to like post");
-    }
+  const toggleLike = async () => {
+    const res = await api.post(`/posts/${post._id}/like`);
+    setLikes(res.data.likes);
   };
 
-  const handleComment = async (e: React.FormEvent) => {
+  const submitComment = async (e: any) => {
     e.preventDefault();
-    if (!commentText.trim()) return;
-
-    try {
-      setLoading(true);
-      const res = await api.post(`/posts/${post._id}/comment`, {
-        text: commentText,
-      });
-
-      if (res.data?.comments) {
-        setComments(res.data.comments);
-      }
-
-      setCommentText("");
-    } catch {
-      alert("Failed to add comment");
-    } finally {
-      setLoading(false);
-    }
+    const res = await api.post(`/posts/${post._id}/comment`, { text });
+    setComments(res.data.comments);
+    setText("");
   };
 
   return (
-    <div
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: "8px",
-        padding: "15px",
-        marginBottom: "20px",
-      }}
-    >
-      <strong>{authorName}</strong>
+    <div style={{ border: "1px solid #ddd", padding: 15, marginBottom: 20 }}>
+      <strong>{post.author.name}</strong>
+      <p>{post.content}</p>
 
-      <p style={{ marginTop: "8px" }}>{post.content}</p>
+      <button onClick={toggleLike}>
+        {isLiked ? "❤️ Liked" : "🤍 Like"} ({likes.length})
+      </button>
 
-      <div style={{ display: "flex", gap: "15px", alignItems: "center" }}>
-        <button onClick={handleLike}>
-          {isLiked ? "❤️ Unlike" : "🤍 Like"}
-        </button>
-        <span>{likes.length} likes</span>
+      <div style={{ marginTop: 10 }}>
+        {comments.map((c: any) => (
+          <p key={c._id}>
+            <strong>{c.user.name}:</strong> {c.text}
+          </p>
+        ))}
       </div>
 
-      {/* Comments */}
-      <div style={{ marginTop: "15px" }}>
-        <strong>Comments</strong>
-
-        {comments.length === 0 && (
-          <p style={{ fontSize: "14px" }}>No comments yet</p>
-        )}
-
-        {comments.map((c) => {
-          const commentAuthor =
-            typeof c.author === "object" && c.author !== null
-              ? c.author.username
-              : "Unknown user";
-
-          return (
-            <div key={c._id} style={{ marginTop: "8px", fontSize: "14px" }}>
-              <strong>{commentAuthor}:</strong> {c.text}
-            </div>
-          );
-        })}
-
-        <form onSubmit={handleComment} style={{ marginTop: "10px" }}>
-          <input
-            type="text"
-            placeholder="Write a comment..."
-            value={commentText}
-            onChange={(e) => setCommentText(e.target.value)}
-            style={{ width: "100%", padding: "6px" }}
-          />
-          <button type="submit" disabled={loading} style={{ marginTop: "6px" }}>
-            {loading ? "Posting..." : "Comment"}
-          </button>
-        </form>
-      </div>
-
-      <small style={{ display: "block", marginTop: "10px" }}>
-        {new Date(post.createdAt).toLocaleString()}
-      </small>
+      <form onSubmit={submitComment}>
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Write a comment"
+        />
+        <button>Comment</button>
+      </form>
     </div>
   );
 }
