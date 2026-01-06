@@ -1,19 +1,18 @@
 import { Navigate } from "react-router-dom";
-import { useUser } from "../context/UserContext";
+import React from "react";
 
-export default function ProtectedRoute(props: any) {
-  const { user, loading } = useUser();
+type ProtectedRouteProps = {
+  children: React.ReactNode;
+};
 
-  // Wait for auth check
-  if (loading) {
-    return <p>Loading...</p>;
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+  const token = localStorage.getItem("token");
+
+  // ❌ Not logged in → redirect to Auth page
+  if (!token) {
+    return <Navigate to="/" replace />;
   }
 
-  // Not logged in
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Logged in
-  return props.children;
+  // ✅ Logged in
+  return <>{children}</>;
 }

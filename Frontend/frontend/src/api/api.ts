@@ -1,5 +1,3 @@
-// Frontend/src/api/api.ts
-
 import axios from "axios";
 
 const api = axios.create({
@@ -23,7 +21,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.location.href = "/"; // ✅ redirect to Auth page
     }
 
     return Promise.reject(error);
