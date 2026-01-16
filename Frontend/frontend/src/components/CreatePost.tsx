@@ -7,14 +7,15 @@ type CreatePostProps = {
 
 export default function CreatePost({ onPostCreated }: CreatePostProps) {
   const [content, setContent] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!content.trim()) {
-      setError("Post content cannot be empty");
+    if (!content.trim() && !file) {
+      setError("Post cannot be empty");
       return;
     }
 
@@ -22,11 +23,18 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
       setLoading(true);
       setError("");
 
-      await api.post("/posts", { content });
+      const formData = new FormData();
+      formData.append("content", content);
+      if (file) {
+        formData.append("media", file);
+      }
+
+      await api.post("/posts", formData);
 
       setContent("");
+      setFile(null);
       onPostCreated();
-    } catch (err) {
+    } catch {
       setError("Failed to create post");
     } finally {
       setLoading(false);
@@ -49,6 +57,13 @@ export default function CreatePost({ onPostCreated }: CreatePostProps) {
         onChange={(e) => setContent(e.target.value)}
         rows={3}
         style={{ width: "100%", padding: "10px" }}
+      />
+
+      <input
+        type="file"
+        accept="image/*,video/*"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+        style={{ marginTop: "10px" }}
       />
 
       {error && <p style={{ color: "red" }}>{error}</p>}

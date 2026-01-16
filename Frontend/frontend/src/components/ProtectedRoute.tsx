@@ -1,18 +1,16 @@
 import { Navigate } from "react-router-dom";
 import React from "react";
 
-type ProtectedRouteProps = {
+type Props = {
   children: React.ReactNode;
 };
 
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children }: Props) {
   const token = localStorage.getItem("token");
 
-  // ❌ Not logged in → redirect to Auth page
   if (!token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
-  // ✅ Logged in
   return <>{children}</>;
 }

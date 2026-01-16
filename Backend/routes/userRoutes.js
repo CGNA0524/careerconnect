@@ -60,13 +60,23 @@ router.get("/stats", authMiddleware, async (req, res) => {
 
 /**
  * ===============================
- * GET CURRENT USER PROFILE
+ * GET CURRENT USER PROFILE (PRIVATE)
  * ===============================
  */
 router.get("/me", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
-    res.json(user);
+    const user = await User.findById(req.user.id)
+      .select("-password")
+      .populate("followers", "name")
+      .populate("following", "name");
+
+    const posts = await Post.find({ author: req.user.id })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      user,
+      posts,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
@@ -104,7 +114,7 @@ router.put("/me", authMiddleware, async (req, res) => {
 router.get("/", authMiddleware, async (req, res) => {
   try {
     const users = await User.find({ _id: { $ne: req.user.id } })
-      .select("name email followers following");
+      .select("name email followers following headline location");
 
     res.json(users);
   } catch (error) {
@@ -165,4 +175,34 @@ router.post("/:id/follow", authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * ===============================
+ * PUBLIC USER PROFILE (LINKEDIN STYLE)
+ * ===============================
+ * Used for visiting /profile/:id
+ */
+router.get("/profile/:id", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select("-password")
+      .populate("followers", "name")
+      .populate("following", "name");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const posts = await Post.find({ author: user._id })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      user,
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to load profile" });
+  }
+});
+
 module.exports = router;
+  

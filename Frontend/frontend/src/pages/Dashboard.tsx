@@ -1,58 +1,55 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import api from "../api/api";
-import DashboardCards from "../components/DashboardCards";
-import PostCard from "../components/PostCard";
-import CreatePost from "../components/CreatePost";
 
-export default function Dashboard() {
-  const [stats, setStats] = useState<any>(null);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [error, setError] = useState("");
-
-  const fetchStats = async () => {
-    try {
-      const res = await api.get("/users/stats");
-      setStats(res.data);
-    } catch {
-      setError("Failed to load stats");
-    }
-  };
-
-  const fetchFeed = async () => {
-  try {
-    const res = await api.get("/posts");
-    setPosts(res.data);
-    setError("");
-  } catch {
-    setError("Failed to load feed");
-  }
+type CreatePostProps = {
+  onPost?: () => void;
 };
 
+export default function CreatePost({ onPost }: CreatePostProps) {
+  const [content, setContent] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    fetchStats();
-    fetchFeed();
-  }, []);
+  const submitPost = async () => {
+    if (!content.trim()) return;
+
+    const formData = new FormData();
+    formData.append("content", content);
+
+    if (file) {
+      formData.append("media", file);
+    }
+
+    await api.post("/posts", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    setContent("");
+    setFile(null);
+
+    // 🔥 notify parent (Dashboard)
+    if (onPost) onPost();
+  };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Dashboard</h2>
+    <div style={{ border: "1px solid #ddd", padding: "10px", marginBottom: "20px" }}>
+      <textarea
+        placeholder="Write a post..."
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        style={{ width: "100%", minHeight: "80px" }}
+      />
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      <input
+        type="file"
+        onChange={(e) => setFile(e.target.files?.[0] || null)}
+        style={{ marginTop: "10px" }}
+      />
 
-      {stats && <DashboardCards stats={stats} />}
-
-      <hr style={{ margin: "30px 0" }} />
-
-      <CreatePost onPostCreated={fetchFeed} />
-
-      <h3>Global Feed</h3>
-
-      {posts.length === 0 && <p>No posts yet</p>}
-
-      {posts.map((post) => (
-        <PostCard key={post._id} post={post} />
-      ))}
+      <button onClick={submitPost} style={{ marginTop: "10px" }}>
+        Post
+      </button>
     </div>
   );
 }

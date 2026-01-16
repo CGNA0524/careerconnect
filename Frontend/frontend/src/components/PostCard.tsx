@@ -12,22 +12,47 @@ export default function PostCard({ post }: any) {
 
   const toggleLike = async () => {
     const res = await api.post(`/posts/${post._id}/like`);
-    setLikes(res.data.likes);
+    setLikes(
+      isLiked
+        ? likes.filter((id: string) => id !== user._id)
+        : [...likes, user._id]
+    );
   };
 
   const submitComment = async (e: any) => {
     e.preventDefault();
+    if (!text.trim()) return;
+
     const res = await api.post(`/posts/${post._id}/comment`, { text });
     setComments(res.data.comments);
     setText("");
   };
+
+  const mediaUrl = post.media
+    ? `http://localhost:3000${post.media}`
+    : null;
 
   return (
     <div style={{ border: "1px solid #ddd", padding: 15, marginBottom: 20 }}>
       <strong>{post.author.name}</strong>
       <p>{post.content}</p>
 
-      <button onClick={toggleLike}>
+      {/* ✅ MEDIA RENDERING */}
+      {mediaUrl &&
+        (post.media.endsWith(".mp4") ? (
+          <video controls width="100%" style={{ marginTop: 10 }}>
+            <source src={mediaUrl} />
+          </video>
+        ) : (
+          <img
+            src={mediaUrl}
+            alt="post media"
+            width="100%"
+            style={{ marginTop: 10 }}
+          />
+        ))}
+
+      <button onClick={toggleLike} style={{ marginTop: 10 }}>
         {isLiked ? "❤️ Liked" : "🤍 Like"} ({likes.length})
       </button>
 
@@ -39,13 +64,13 @@ export default function PostCard({ post }: any) {
         ))}
       </div>
 
-      <form onSubmit={submitComment}>
+      <form onSubmit={submitComment} style={{ marginTop: 10 }}>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Write a comment"
         />
-        <button>Comment</button>
+        <button type="submit">Comment</button>
       </form>
     </div>
   );

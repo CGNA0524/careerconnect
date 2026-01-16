@@ -1,73 +1,58 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import Dashboard from "./pages/Dashboard";
-import Notifications from "./pages/Notifications";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Notifications from "./pages/Notifications";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Navbar from "./components/Navbar";
 
-/* ---------------- TOP BAR ---------------- */
-function TopBar() {
-  const navigate = useNavigate();
-  const isLoggedIn = !!localStorage.getItem("token");
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
+export default function App() {
   return (
-    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-      <h1>CareerConnect</h1>
-
-      {isLoggedIn && (
-        <button onClick={handleLogout}>
-          Logout
-        </button>
-      )}
-    </div>
-  );
-}
-
-/* ---------------- LAYOUT ---------------- */
-function AppLayout() {
-  return (
-    <div style={{ fontFamily: "serif", padding: "20px" }}>
-      <TopBar />
-
+    <BrowserRouter>
       <Routes>
-        {/* Auth (default page) */}
-        <Route path="/" element={<Auth />} />
+        {/* AUTH */}
+        <Route path="/" element={<Navigate to="/auth" replace />} />
+        <Route path="/auth" element={<Auth />} />
 
-        {/* Protected pages */}
+        {/* DASHBOARD */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              <>
+                <Navbar />
+                <Dashboard />
+              </>
             </ProtectedRoute>
           }
         />
 
+        {/* PROFILE */}
+        <Route
+          path="/profile/me"
+          element={
+            <ProtectedRoute>
+              <>
+                <Navbar />
+                <Profile />
+              </>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* NOTIFICATIONS */}
         <Route
           path="/notifications"
           element={
             <ProtectedRoute>
-              <Notifications />
+              <>
+                <Navbar />
+                <Notifications />
+              </>
             </ProtectedRoute>
           }
         />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </div>
-  );
-}
-
-/* ---------------- ROOT ---------------- */
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AppLayout />
     </BrowserRouter>
   );
 }
